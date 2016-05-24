@@ -51,6 +51,16 @@ board0 = Board $ listArray ((1, 1), (8, 8)) b
     pb = replicate 8 (Just $ Piece Black Pawn)
     b0 = replicate 8 Nothing
 
+evoboard :: Board
+evoboard = Board $ listArray ((1, 1), (8, 8)) b
+  where
+    b = b1 ++ b2 ++ b0 ++ b0 ++ b0 ++ b0 ++ b7 ++ b8
+    b0 = replicate 8 Nothing
+    b1 = [Nothing, Nothing, Nothing, Nothing, Just $ Piece White King, Nothing, Nothing, Nothing]
+    b2 = replicate 8 (Just $ Piece White Pawn)  -- White pawns only
+    b7 = replicate 8 (Just $ Piece Black Pawn)
+    b8 = [Nothing, Nothing, Nothing, Nothing, Just $ Piece Black King, Nothing, Nothing, Nothing]
+
 emptyBoard :: Board
 emptyBoard = Board $ listArray ((1, 1), (8, 8)) (repeat Nothing)
 
@@ -59,6 +69,3 @@ isValidMove _ _ _ = False
 
 move :: Board -> coord1 -> coord2 -> Board
 move _ _ _ = board0
-
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
