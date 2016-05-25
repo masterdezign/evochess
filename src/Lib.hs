@@ -165,9 +165,9 @@ geometry board (Piece _ Bishop) (x, y) = []
 
 geometry board (Piece _ Rook) (x, y) = []
 
-geometry board piece@(Piece _ Queen) coord = bishop ++ rook
-  where bishop = geometry board piece coord
-        rook = geometry board piece coord
+geometry board (Piece color Queen) coord = bishop ++ rook
+  where bishop = geometry board (Piece color Bishop) coord
+        rook = geometry board (Piece color Rook) coord
 
 geometry _ (Piece _ King) (x, y) = [ (x + 1, y    )
                                    , (x - 1, y    )
