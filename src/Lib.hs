@@ -65,10 +65,10 @@ newtype Board = Board { getBoard :: Array Coord Square }
 boardBounds = ((1, 1), (8, 8))
 
 inBoard :: Coord -> Bool
-inBoard (x, y) = x > (fst $ fst boardBounds)
-                 && x < (fst $ snd boardBounds)
-                 && y < (snd $ fst boardBounds)
-                 && y < (snd $ snd boardBounds)
+inBoard (x, y) = x >= (fst $ fst boardBounds)
+                 && x <= (fst $ snd boardBounds)
+                 && y <= (snd $ fst boardBounds)
+                 && y <= (snd $ snd boardBounds)
 
 -- Pieces in the very beginning of the game
 board0 :: Board
@@ -139,5 +139,47 @@ opposite _ = White
 isValidMove :: Board -> Coord -> Coord -> Bool
 isValidMove _ _ _ = False
 
+-- Do not forget en passant
 move :: Board -> Coord -> Coord -> Board
 move _ _ _ = board0
+
+-- Move geometry based on the partial game state (no en passant, no castling)
+geometry :: Board -> Piece -> Coord -> [Coord]
+geometry _ (Piece _ Knight) (x, y) = [ (x - 1, y + 2)
+                                     , (x + 1, y + 2)
+                                     , (x + 2, y - 1)
+                                     , (x + 2, y + 1)
+                                     , (x - 1, y - 2)
+                                     , (x + 1, y + 2)
+                                     , (x - 2, y - 1)
+                                     , (x - 2, y + 1) ]
+
+geometry board (Piece White Pawn) (x, y) = [(x, y + 1)] ++ attack1 ++ attack2 ++ longmove
+  where
+    attack coord' | (board `hasEnemyPiece` White) coord' = [coord']
+                  | otherwise = []
+
+    attack1 = attack (x + 1, y + 1)
+    attack2 = attack (x - 1, y + 1)
+    longmove | y == 2 = [(x, 4)]
+             | otherwise = []
+
+geometry board (Piece Black Pawn) (x, y) = [(x, y - 1)] ++ attack1 ++ attack2 ++ longmove
+  where
+    attack coord' | (board `hasEnemyPiece` Black) coord' = [coord']
+                  | otherwise = []
+
+    attack1 = attack (x + 1, y + 1)
+    attack2 = attack (x - 1, y + 1)
+    longmove | y == 7 = [(x, 5)]
+             | otherwise = []
+
+-- Check if the square contains a piece of given color
+hasMyPiece :: Board -> Color -> Coord -> Bool
+hasMyPiece board mycolor coord = f sq
+  where sq = getSquare board coord
+        f (Just (Piece mycolor _)) = True
+        f _ = False
+
+hasEnemyPiece :: Board -> Color -> Coord -> Bool
+hasEnemyPiece board mycolor coord = hasMyPiece board (opposite mycolor) coord
