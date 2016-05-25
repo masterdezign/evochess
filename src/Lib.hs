@@ -1,9 +1,13 @@
+{- This is a board-centric approach which guarantees that
+ - each piece has unique coordinated.
+ -}
 {-# LANGUAGE FlexibleInstances #-}
 
 module Lib where
 
 import Data.List
 import Data.Array
+import Data.Maybe ( fromJust )
 
 data Kind = Rook | Knight | Bishop | Queen | King | Pawn
   deriving Eq
@@ -73,6 +77,46 @@ evoboard = Board $ listArray boardBounds b
 
 emptyBoard :: Board
 emptyBoard = Board $ listArray boardBounds (repeat Nothing)
+
+pawnDirection :: Color -> Int
+pawnDirection White = 1
+pawnDirection Black = -1
+
+-- Verify if a piece given by coord is under attack.
+-- Especially useful to see if a king is in check.
+-- That is needed to verify if a piece is pinned.
+-- A piece is pinned if after its move the king of
+-- the same color would be in check.
+-- Thus, the game should not only retain the board
+-- information, but also it should be able to quickly
+-- find the position of both kings.
+isAttacked :: Board -> Coord -> Bool
+isAttacked board@(Board brd) coord@(x, y) = pawn1 || pawn2 || other
+  where
+    -- Using fromJust as we are sure the piece exists
+    color = getColor $ fromJust $ getPiece board coord
+
+    -- Check if there are any enemy pawns
+    pawn1 = pawnAttacks (x - 1, y - opdirection)
+    pawn2 = pawnAttacks (x + 1, y + opdirection)
+
+    pawnAttacks coord' = (getPiece board coord') == (Just $ Piece opcolor Pawn)
+    opcolor = opposite color
+    opdirection = pawnDirection opcolor
+
+    other = False
+
+getPiece :: Board -> Coord -> Maybe Piece
+getPiece (Board brd) coord | not (inBoard coord) = Nothing
+                           | otherwise = brd ! coord
+
+getColor :: Piece -> Color
+getColor (Piece White _) = White
+getColor _ = Black
+
+opposite :: Color -> Color
+opposite White = Black
+opposite _ = White
 
 isValidMove :: Board -> Coord -> Coord -> Bool
 isValidMove _ _ _ = False
