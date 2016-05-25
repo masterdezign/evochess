@@ -174,8 +174,8 @@ geometry board (Piece Black Pawn) (x, y) = [(x, y - 1)] ++ attack1 ++ attack2 ++
     attack coord' | (board `hasEnemyPiece` Black) coord' = [coord']
                   | otherwise = []
 
-    attack1 = attack (x + 1, y + 1)
-    attack2 = attack (x - 1, y + 1)
+    attack1 = attack (x + 1, y - 1)
+    attack2 = attack (x - 1, y - 1)
     longmove | y == 7 = [(x, 5)]
              | otherwise = []
 
