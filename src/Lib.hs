@@ -1,5 +1,5 @@
 {- This is a board-centric approach which guarantees that
- - each piece has unique coordinated.
+ - each piece has unique coordinates.
  -
  - The game stores the following information:
  - 1. Board
