@@ -1,5 +1,21 @@
 {- This is a board-centric approach which guarantees that
  - each piece has unique coordinated.
+ -
+ - The game stores the following information:
+ - 1. Board
+ - 2. Turn number. Odd numbers correspond to the moves of White,
+ -    even numbers, of Black.
+ - 3. Number of pawn moves (including captures by pawns), required
+ -    for a pawn-minor piece transformation. Both players.
+ - 4. Number of piece captures, required for rook promotion. Both
+ -    players.
+ - 5. Location of both kings to quickly check for pins.
+ -    Alternatively, no kings location is needed if every enemy's
+ -    piece is checked if the king is in its attack range.
+ -
+ - Information about castling is not stored since it is
+ - not defined for the evochess.
+ -
  -}
 {-# LANGUAGE FlexibleInstances #-}
 
@@ -94,21 +110,21 @@ isAttacked :: Board -> Coord -> Bool
 isAttacked board@(Board brd) coord@(x, y) = pawn1 || pawn2 || other
   where
     -- Using fromJust as we are sure the piece exists
-    color = getColor $ fromJust $ getPiece board coord
+    color = getColor $ fromJust $ getSquare board coord
 
     -- Check if there are any enemy pawns
     pawn1 = pawnAttacks (x - 1, y - opdirection)
     pawn2 = pawnAttacks (x + 1, y - opdirection)
 
-    pawnAttacks coord' = (getPiece board coord') == (Just $ Piece opcolor Pawn)
+    pawnAttacks coord' = (getSquare board coord') == (Just $ Piece opcolor Pawn)
     opcolor = opposite color
     opdirection = pawnDirection opcolor
 
     other = False
 
-getPiece :: Board -> Coord -> Maybe Piece
-getPiece (Board brd) coord | not (inBoard coord) = Nothing
-                           | otherwise = brd ! coord
+getSquare :: Board -> Coord -> Square
+getSquare (Board brd) coord | not (inBoard coord) = Nothing
+                            | otherwise = brd ! coord
 
 getColor :: Piece -> Color
 getColor (Piece White _) = White
