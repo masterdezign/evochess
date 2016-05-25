@@ -16,6 +16,8 @@ type Square = Maybe Piece
 data Piece = Piece Color Kind
   deriving Eq
 
+type Coord = (Int, Int)
+
 showP (Piece White Rook) = "R"
 showP (Piece White Knight) = "N"
 showP (Piece White Bishop) = "B"
@@ -36,11 +38,19 @@ instance Show Board where
   show (Board b) = concat $ intersperse "\n"s
     where s = [(intersperse ' ' [(head $ showS $ b ! (8 - i + 1, j)) | j <- [1..8]]) | i <- [1..8]]
 
-newtype Board = Board { getBoard :: Array (Int, Int) Square }
+newtype Board = Board { getBoard :: Array Coord Square }
+
+boardBounds = ((1, 1), (8, 8))
+
+inBoard :: Coord -> Bool
+inBoard (x, y) = x > (fst $ fst boardBounds)
+                 && x < (fst $ snd boardBounds)
+                 && y < (snd $ fst boardBounds)
+                 && y < (snd $ snd boardBounds)
 
 -- Pieces in the very beginning of the game
 board0 :: Board
-board0 = Board $ listArray ((1, 1), (8, 8)) b
+board0 = Board $ listArray boardBounds b
   where
     b = bw ++ pw ++ b0 ++ b0 ++ b0 ++ b0 ++ pb ++ bb
     bw = map Just [Piece White Rook, Piece White Knight, Piece White Bishop, Piece White Queen
@@ -52,7 +62,7 @@ board0 = Board $ listArray ((1, 1), (8, 8)) b
     b0 = replicate 8 Nothing
 
 evoboard :: Board
-evoboard = Board $ listArray ((1, 1), (8, 8)) b
+evoboard = Board $ listArray boardBounds b
   where
     b = b1 ++ b2 ++ b0 ++ b0 ++ b0 ++ b0 ++ b7 ++ b8
     b0 = replicate 8 Nothing
@@ -62,10 +72,10 @@ evoboard = Board $ listArray ((1, 1), (8, 8)) b
     b8 = [Nothing, Nothing, Nothing, Nothing, Just $ Piece Black King, Nothing, Nothing, Nothing]
 
 emptyBoard :: Board
-emptyBoard = Board $ listArray ((1, 1), (8, 8)) (repeat Nothing)
+emptyBoard = Board $ listArray boardBounds (repeat Nothing)
 
-isValidMove :: Board -> coord1 -> coord2 -> Bool
+isValidMove :: Board -> Coord -> Coord -> Bool
 isValidMove _ _ _ = False
 
-move :: Board -> coord1 -> coord2 -> Board
+move :: Board -> Coord -> Coord -> Board
 move _ _ _ = board0
