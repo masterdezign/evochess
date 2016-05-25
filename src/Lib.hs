@@ -159,6 +159,25 @@ geometry _ (Piece _ Knight) (x, y) = [ (x - 1, y + 2)
                                      , (x - 2, y - 1)
                                      , (x - 2, y + 1) ]
 
+-- Now, the idea is to use the board state and boardBounds
+-- in order to get piece's visibility range.
+geometry board (Piece _ Bishop) (x, y) = []
+
+geometry board (Piece _ Rook) (x, y) = []
+
+geometry board piece@(Piece _ Queen) coord = bishop ++ rook
+  where bishop = geometry board piece coord
+        rook = geometry board piece coord
+
+geometry _ (Piece _ King) (x, y) = [ (x + 1, y    )
+                                   , (x - 1, y    )
+                                   , (x    , y + 1)
+                                   , (x    , y - 1)
+                                   , (x + 1, y + 1)
+                                   , (x + 1, y - 1)
+                                   , (x - 1, y + 1)
+                                   , (x - 1, y - 1) ]
+
 geometry board (Piece White Pawn) (x, y) = [(x, y + 1)] ++ attack1 ++ attack2 ++ longmove
   where
     attack coord' | (board `hasEnemyPiece` White) coord' = [coord']
