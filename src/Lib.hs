@@ -56,23 +56,28 @@ showP (Piece Black Pawn) = "p"
 showS Nothing = " "
 showS (Just p) = showP p
 
+minX, maxX, minY, maxY :: Int
+minX = 1
+maxX = 8
+minY = 1
+maxY = 8
+boardBounds :: ((Int, Int), (Int, Int))
+boardBounds = ((minX, minY), (maxX, maxY))
+
 instance Show Board where
-  show (Board b) = concat $ intersperse "\n"s
-    where s = [(intersperse ' ' [(head $ showS $ b ! (8 - i + 1, j)) | j <- [1..8]]) | i <- [1..8]]
+  show (Board b) = concat $ intersperse "\n" s
+    where s = [(intersperse ' ' [(head $ showS $ b ! (maxX - i + 1, j)) | j <- [minY..maxY]]) | i <- [minX..maxX]]
 
 newtype Board = Board { getBoard :: Array Coord Square }
 
-boardBounds = ((1, 1), (8, 8))
-
 inBoard :: Coord -> Bool
-inBoard (x, y) = x >= (fst $ fst boardBounds)
-                 && x <= (fst $ snd boardBounds)
-                 && y <= (snd $ fst boardBounds)
-                 && y <= (snd $ snd boardBounds)
+inBoard (x, y) = x >= minX && x <= maxX
+                 && y >= minY && y <= maxY
+{-# INLINE inBoard #-}
 
--- Pieces in the very beginning of the game
-board0 :: Board
-board0 = Board $ listArray boardBounds b
+-- Pieces in the very beginning of the game on a classical 8x8 board
+board8 :: Board
+board8 = Board $ listArray ((1, 1), (8, 8)) b
   where
     b = bw ++ pw ++ b0 ++ b0 ++ b0 ++ b0 ++ pb ++ bb
     bw = map Just [Piece White Rook, Piece White Knight, Piece White Bishop, Piece White Queen
@@ -83,8 +88,8 @@ board0 = Board $ listArray boardBounds b
     pb = replicate 8 (Just $ Piece Black Pawn)
     b0 = replicate 8 Nothing
 
-evoboard :: Board
-evoboard = Board $ listArray boardBounds b
+evoboard8 :: Board
+evoboard8 = Board $ listArray ((1, 1), (8, 8)) b
   where
     b = b1 ++ b2 ++ b0 ++ b0 ++ b0 ++ b0 ++ b7 ++ b8
     b0 = replicate 8 Nothing
@@ -141,7 +146,7 @@ isValidMove _ _ _ = False
 
 -- Do not forget en passant
 move :: Board -> Coord -> Coord -> Board
-move _ _ _ = board0
+move _ _ _ = emptyBoard
 
 -- Move geometry based on the partial game state (no en passant, no castling)
 geometry :: Board -> Piece -> Coord -> [Coord]
