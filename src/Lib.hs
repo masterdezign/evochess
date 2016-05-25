@@ -98,7 +98,7 @@ isAttacked board@(Board brd) coord@(x, y) = pawn1 || pawn2 || other
 
     -- Check if there are any enemy pawns
     pawn1 = pawnAttacks (x - 1, y - opdirection)
-    pawn2 = pawnAttacks (x + 1, y + opdirection)
+    pawn2 = pawnAttacks (x + 1, y - opdirection)
 
     pawnAttacks coord' = (getPiece board coord') == (Just $ Piece opcolor Pawn)
     opcolor = opposite color
