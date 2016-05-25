@@ -9,7 +9,9 @@
  -    for a pawn-minor piece transformation. Both players.
  - 4. Number of piece captures, required for rook promotion. Both
  -    players.
- - 5. Location of both kings to quickly check for pins.
+ - 5. Is en passant defined? If yes, then the information abouth
+ -    the last long pawn move has to be stored.
+ - 6. Location of both kings to quickly check for pins.
  -    Alternatively, no kings location is needed if every enemy's
  -    piece is checked if the king is in its attack range.
  -
