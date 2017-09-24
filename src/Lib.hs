@@ -1,24 +1,47 @@
-{- This is a board-centric approach which guarantees that
+{-  The EvoChess Game
+    Copyright (C) Bogdan Penkovsky 2017
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ Evochess
+ ========
+
+ == Rules
+
+ See rules.txt
+
+ == Implementation
+
+ This is a board-centric approach which guarantees that
  - each piece has unique coordinates.
- -
- - The game stores the following information:
- - 1. Board
- - 2. Turn number. Odd numbers correspond to the moves of White,
- -    even numbers, of Black.
- - 3. Number of pawn moves (including captures by pawns), required
- -    for a pawn-minor piece transformation. Both players.
- - 4. Number of piece captures, required for rook promotion. Both
- -    players.
- - 5. Is en passant defined? If yes, then the information abouth
- -    the last long pawn move has to be stored.
- - 6. Location of both kings to quickly check for pins.
- -    Alternatively, no kings location is needed if every enemy's
- -    piece is checked if the king is in its attack range.
- -
- - Information about castling is not stored since it is
- - not defined for the evochess.
- -
- -}
+
+ The game stores the following information:
+ 1. Board
+ 2. Turn number. Odd numbers correspond to the moves of White,
+    even numbers, of Black.
+ 3. Number of Pawn moves (including captures by Pawns), required
+    for a Pawn-minor piece transformation (#1).
+ 4. Number of piece captures, required for rook promotion (#2).
+ 5. The information about the last long Pawn move
+    (the en passant rule).
+ 6. Location of both kings to quickly check for pins.
+    Alternatively, no kings location is needed when every opponent's
+    piece is checked if the player's king is in its attack range.
+
+ Information about castling is not stored since it is
+ not defined for the evochess.
+-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module Lib where
@@ -26,6 +49,11 @@ module Lib where
 import Data.List
 import Data.Array
 import Data.Maybe ( fromJust )
+
+-- Min number of pawn moves to promote #1
+_N = 3
+-- Min number of piece captures to promote #2
+_K = 2
 
 data Kind = Rook | Knight | Bishop | Queen | King | Pawn
   deriving Eq
@@ -39,6 +67,58 @@ data Piece = Piece Color Kind
   deriving Eq
 
 type Coord = (Int, Int)
+
+data Game = Game { player1 :: Player
+                 , player2 :: Player
+                 , turn :: Int
+                 , board :: Board }
+
+initial = Game { player1 = player0 { color = White }
+               , player2 = player0 { color = Black }
+               , turn = 1
+               , board = evoboard8 }
+
+data Player = Player { pawnMoves :: Int
+                     , color :: Color
+                     , capturedPieces :: Int}
+
+player0 = Player { pawnMoves = 0
+                 , color = White
+                 , capturedPieces = 0 }
+
+type Move = (Coord, Coord, Attr Char)
+data Attr a = None | Promote a
+
+play :: Move -> Game -> Either String Game
+play m g@Game
+  { turn = turn
+  , player1 = player1
+  , player2 = player2
+  , board = board } | validMove m activePlayer board = Right g'
+                    | otherwise = Left "Invalid move"
+  where g' = g { turn = turn + 1
+               , player1 = player1'
+               , player2 = player2'
+               , board = board' }
+
+        -- Update players state
+        player1' = if odd turn then activePlayer' else player1
+        player2' = if even turn then player2 else activePlayer'
+        activePlayer = if odd turn then player1 else player2 :: Player
+        activePlayer' = countMoves activePlayer move
+
+        -- Update the board state
+        board' = board        -- TODO
+
+countMoves player move = player  -- TODO
+
+validMove (c1, c2, at) player b =
+  -- TODO Check the attributes at
+  inBoard c1 && inBoard c2 && canMoveTo c1 c2 board && myPiece c1 player board
+
+canMoveTo c1 c2 board = True  -- TODO
+
+myPiece c1 player board = True  -- TODO: is this check necessary?
 
 showP (Piece White Rook) = "R"
 showP (Piece White Knight) = "N"
